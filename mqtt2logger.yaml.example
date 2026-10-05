@@ -1,0 +1,60 @@
+# Configuration of mqtt2logger; the command line overrides each setting.
+
+mqtt:
+  host: localhost
+  # port: 1883              # 8883 with tls
+  # username: mqtt2logger
+  # password_file: /etc/mqtt2logger.password
+  # tls: false
+  # ca_cert: /etc/ssl/certs/ca.pem
+  # A fixed client id and clean_session false keep a session on the broker,
+  # which keeps QoS 1 messages while mqtt2logger is down.
+  # client_id: mqtt2logger-HOSTNAME
+  qos: 1
+  clean_session: false
+
+# Log topics; + marks the level that names the device.
+sources:
+  - {type: esphome, topic: '+/debug'}          # logger: log_topic of ESPHome
+  - {type: tasmota, topic: 'stat/+/LOGGING'}   # Tasmota with MqttLog 1..4
+
+# A retained message is the last one before mqtt2logger subscribed, possibly old.
+ignore_retained: true
+
+# Tasmota does not publish the severity of a line: this one is used, unless a
+# priority rule matches. With MqttLog 1 a device only sends errors, so give
+# its source "priority: err" instead.
+tasmota:
+  priority: info
+
+# The first matching rule sets the severity. Fields: device, firmware, tag
+# (the ESPHome component or Tasmota's three-letter tag), message, topic.
+priority_rules:
+  - {firmware: tasmota, message: '(?i)\b(error|fail(ed|ure)?|timeout)\b', priority: err}
+  # - {device: '^noisy-plug$', priority: debug}
+
+# Device time stamps (Tasmota's) are used if they are at most this many
+# seconds old or in the future, else the time of reception.
+timestamps:
+  max_age: 3600
+  max_future: 120
+
+rsyslog:
+  enabled: true
+  # tcp://HOST:PORT (RFC 5424, octet counting), udp://HOST:PORT or unix:PATH;
+  # see rsyslog-mqtt2logger.conf for the input on the rsyslog side.
+  address: tcp://127.0.0.1:10514
+  facility: local0
+  hostname: '{device}'
+  app_name: '{firmware}'
+
+# Mind: if journald forwards to rsyslog (ForwardToSyslog, imjournal), enabling
+# both outputs makes rsyslog get each message twice.
+journal:
+  enabled: false
+  socket: /run/systemd/journal/socket
+  identifier: '{device}'
+  facility: local0
+
+# Messages kept per output while rsyslog or journald is unavailable.
+queue_size: 10000

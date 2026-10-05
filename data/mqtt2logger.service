@@ -1,0 +1,33 @@
+[Unit]
+Description=Forward the MQTT logs of ESPHome and Tasmota devices to rsyslog and journald
+Documentation=https://github.com/Aikhjarto/mqtt2logger
+Wants=network-online.target
+After=network-online.target rsyslog.service mosquitto.service
+
+[Service]
+Type=exec
+User=mqtt2logger
+Group=mqtt2logger
+ExecStart=/usr/bin/mqtt2logger --config /etc/mqtt2logger.yaml
+Restart=always
+RestartSec=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target
