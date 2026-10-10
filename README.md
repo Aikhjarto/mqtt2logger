@@ -148,6 +148,15 @@ systemctl enable --now mqtt2logger
 The service runs as the user `mqtt2logger`; a password file must be readable
 by it.
 
+## Bash completion
+
+`completions/mqtt2logger` completes the options and their values. The packages
+install it; otherwise copy it to bash-completion's directory:
+
+```sh
+install -D -m 0644 completions/mqtt2logger /usr/share/bash-completion/completions/mqtt2logger
+```
+
 ## Tests
 
 ```sh
@@ -156,7 +165,8 @@ python3 -m unittest -v
 
 The tests run mosquitto on a free port, a fake rsyslog TCP server and a fake
 journald socket, and rsyslogd itself if installed. They skip the daemon tests
-without mosquitto or paho-mqtt.
+without mosquitto or paho-mqtt. `tests/test_completion.py` checks the bash
+completion against `--help`.
 
 ## License
 

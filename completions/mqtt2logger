@@ -1,0 +1,36 @@
+# bash completion for mqtt2logger                            -*- shell-script -*-
+
+_mqtt2logger()
+{
+    local cur=${COMP_WORDS[COMP_CWORD]} prev=${COMP_WORDS[COMP_CWORD-1]}
+    # --option=value: bash splits at the =
+    if [[ $cur == = ]]; then
+        cur=
+    elif [[ $prev == = && $COMP_CWORD -ge 2 ]]; then
+        prev=${COMP_WORDS[COMP_CWORD-2]}
+    fi
+    COMPREPLY=()
+
+    case $prev in
+        -H | --mqtt-host)
+            mapfile -t COMPREPLY < <(compgen -A hostname -- "$cur")
+            return
+            ;;
+        -C | --config | --mqtt-password-file | --ca-cert)
+            compopt -o filenames 2>/dev/null
+            mapfile -t COMPREPLY < <(compgen -f -- "$cur")
+            return
+            ;;
+        -p | --mqtt-port | -u | --mqtt-username | --client-id | --esphome-topic | \
+            --tasmota-topic | --rsyslog)
+            return
+            ;;
+    esac
+
+    # no positional arguments: offer the options
+    mapfile -t COMPREPLY < <(compgen -W '-h --help -V --version -C --config -H --mqtt-host
+        -p --mqtt-port -u --mqtt-username --mqtt-password-file --tls --ca-cert
+        --client-id --esphome-topic --tasmota-topic --rsyslog --no-rsyslog --journal
+        --no-journal -v --verbose' -- "$cur")
+}
+complete -F _mqtt2logger mqtt2logger
